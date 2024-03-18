@@ -4,6 +4,7 @@ using ImageDistorsion.NumericLayer;
 using ImageDistorsion;
 using MathNet.Numerics.LinearAlgebra;
 using ImageDistorsion.NumericLayer.NumericVisualization;
+using System.Drawing;
 
 namespace ImageDistorsionUI
 {
@@ -25,7 +26,8 @@ namespace ImageDistorsionUI
 
             if (ofd.ShowDialog() == DialogResult.OK)
             {
-                pictureBox1.Image = new Bitmap(ofd.FileName);
+                DisplayedImg = new(ofd.FileName);
+                pictureBox1.Image = DisplayedImg;
                 ImagePath = ofd.FileName;
             }
         }
@@ -166,7 +168,15 @@ namespace ImageDistorsionUI
             label2.Text = Size;
         }
 
-        private PixelArrayToBitmap PA2Bmp;
+        /// <summary>
+        /// The image displayed in the PictureBox.
+        /// </summary>
+        private Bitmap? DisplayedImg;
+
+        /// <summary>
+        /// For storing the corrected image.
+        /// </summary>
+        private PixelArrayToBitmap? PA2Bmp;
 
         /* Correct the distortion in the image and display the corrected image. */
         private void ProcessImg(int widthInPixs, int heightInPixs)
@@ -177,6 +187,7 @@ namespace ImageDistorsionUI
                 return;
             }
 
+            /*
             ColorArray2D img = new(ImagePath);
             UIPixToImgPix ui2img = new(pictureBox1.Width, pictureBox1.Height, img.NHorizontalPix, img.NVerticalPix);
             List<RowColForHash> imgMarkers = ui2img.ConvertAll(RecordedMarkers);
@@ -193,6 +204,58 @@ namespace ImageDistorsionUI
             }
             mtp.FinishLoading();
             PA2Bmp = new(mtp.PixArray2D);
+            */
+
+            /* Make a copy of the color array of the image. */
+            ArgumentNullException.ThrowIfNull(DisplayedImg);
+            ColorArray2D colorArr = new(DisplayedImg);
+
+            /* Map the four vertices of the quadrilateral from the UI row-col indexes to image row-col indexes*/
+            UIPixToImgPix ui2img = new(pictureBox1.Width, pictureBox1.Height, colorArr.NHorizontalPix, colorArr.NVerticalPix);
+            List<RowColForHash> VertsOnImg = ui2img.ConvertAll(RecordedMarkers);
+
+            /* Get the bounding box of the quadrilateral. */
+            BoundingFrame boundingFrame = new(VertsOnImg.ToArray());
+            boundingFrame.FinishReading();
+
+            /* Crop the image to the bounding box. */
+            colorArr.Crop([boundingFrame.TopLeftRowCol.RowIdx, boundingFrame.TopLeftRowCol.ColIdx], [boundingFrame.BottomRightRowCol.RowIdx, boundingFrame.BottomRightRowCol.ColIdx], ref VertsOnImg);
+
+            /* Create the distorted visualization mapping. */
+            // Get the nearest-lattice-point mapping
+            RowCol_Coord_Mapping NrstLttcPntMapping = new(colorArr.NHorizontalPix, colorArr.NVerticalPix);
+            // The mapping from the distorted image pixel indexes to the color
+            DistortedVisualizationMapping DstVisMapping = new((int rowIdx, int colIdx) => colorArr[rowIdx, colIdx], NrstLttcPntMapping);
+
+            /* Create the numeric layer pullback correction mapping. */
+            // Create the numeric layer corrected domain
+            RectPolygon correctedDomain = new(new double[] { 0, 0 }, new double[] { 1, 1 });
+            // Create the numeric layer quadrilateral
+            Coord2ForHash<double>[] quadVertices = (from v in VertsOnImg 
+                                                    select DstVisMapping.Coord2RowColMapping.RowColToCoordMapping(v.RowIdx, v.ColIdx)).ToArray(); // Get the four vertices of the quadrilateral
+            ConvexPolygon quadrilateral = new((from qv in quadVertices
+                                               select new double[] { qv.x, qv.y }).ToArray());
+            // The pullback correction mapping
+            ImageDistorsion.NumericLayer.PullbackCorrection NuPullbackCorrection = new(quadrilateral, correctedDomain, (double x, double y) => DstVisMapping.Map(x, y));
+
+            /* Create the pixel layer pullback correction. */
+            // Get the mapping from the row and column indexes to the Euclidean plane coordinates for the corrected image
+            RowCol_Coord_Mapping RowCol2CoordForCorrected = new(widthInPixs, heightInPixs, xspan: 1, yspan: 1);
+            // The pixel layer pullback correction
+            ImageDistorsion.PixelLayer.PullbackCorrection PixelLayerPullbackCorrection = new(RowCol2CoordForCorrected, NuPullbackCorrection);
+
+            /* Generate the pixel array for the corrected image. */
+            Color[,] PixArrForCorrected = new Color[widthInPixs, heightInPixs]; // Index pair is in the form of [column, row]
+            for (int i = 0; i < heightInPixs; i++) // Row index
+            {
+                for (int j = 0; j < widthInPixs; j++) // Column index
+                {
+                    PixArrForCorrected[j, i] = PixelLayerPullbackCorrection.CorrectedRowColToColorMapping(i, j);
+                }
+            }
+
+            /* Prepare the corrected image for display. */
+            PA2Bmp = new(PixArrForCorrected);
 
             /* Display the corrected image. */
             pictureBox1.Image = PA2Bmp.ImgBmp;
@@ -235,6 +298,7 @@ namespace ImageDistorsionUI
                 sfd.RestoreDirectory = true;
                 if (sfd.ShowDialog() == DialogResult.OK)
                 {
+                    ArgumentNullException.ThrowIfNull(PA2Bmp);
                     PA2Bmp.ImgBmp.Save(sfd.FileName);
                     MessageBox.Show("Image saved successfully");
                 }
