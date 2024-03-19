@@ -1,15 +1,10 @@
 using ImageDistorsion.PixelLayer;
 using ImageDistorsion.FormattingLayer;
 using ImageDistorsion.NumericLayer;
-using ImageDistorsion;
 using MathNet.Numerics.LinearAlgebra;
-using ImageDistorsion.NumericLayer.NumericVisualization;
-using System.Drawing;
 
 namespace ImageDistorsionUI
 {
-    using VecDbl = Vector<double>;
-
     public partial class Form1 : Form
     {
         public Form1()
@@ -37,6 +32,9 @@ namespace ImageDistorsionUI
         /// </summary>
         private int MarkerCnt = 0;
 
+        /// <summary>
+        /// The four vertices of the selected quadrilateral region.
+        /// </summary>
         private List<Point> RecordedMarkers = new();
 
         private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
@@ -144,30 +142,6 @@ namespace ImageDistorsionUI
             ResetMarkers();
         }
 
-        private void LogMarkerLocatinos()
-        {
-            if (RecordedMarkers.Count == 0)
-            {
-                label1.Text = "No markers have been placed.";
-                return;
-            }
-            string LastMarker = RecordedMarkers[RecordedMarkers.Count - 1].ToString();
-            label1.Text = LastMarker;
-        }
-
-        /* When the user clicks the "Log locations" button, log the positions of the markers. */
-        private void logBtn_Click(object sender, EventArgs e)
-        {
-            LogMarkerLocatinos();
-            LogPictureBoxSize();
-        }
-
-        private void LogPictureBoxSize()
-        {
-            string Size = pictureBox1.Size.ToString();
-            label2.Text = Size;
-        }
-
         /// <summary>
         /// The image displayed in the PictureBox.
         /// </summary>
@@ -186,25 +160,6 @@ namespace ImageDistorsionUI
                 MessageBox.Show("Please load an image and place 4 markers on it.");
                 return;
             }
-
-            /*
-            ColorArray2D img = new(ImagePath);
-            UIPixToImgPix ui2img = new(pictureBox1.Width, pictureBox1.Height, img.NHorizontalPix, img.NVerticalPix);
-            List<RowColForHash> imgMarkers = ui2img.ConvertAll(RecordedMarkers);
-            MarkersInRegion mir = new(
-                img,
-                (from imkr in imgMarkers select new int[] { imkr.RowIdx, imkr.ColIdx }).ToArray()
-            );
-            InverseDistort invDistort = new(mir.SelectedRegion, pictureBox1.Width, pictureBox1.Height); // WIP: The last two arguments are currently unused
-            MarkersToPixels mtp = new(widthInPixs, heightInPixs); // WIP: The size of the corrected image is currently hardcoded. It should have been calculated from the quadrilateral based on the 3D orientation of the paper relative to the camera.
-            foreach (var nmk in mir)
-            {
-                VecDbl correctedPoint = invDistort.Mapping(VecDbl.Build.DenseOfArray([nmk.x, nmk.y]));
-                mtp.LoadMarker(new NuMarker<Color>(correctedPoint[0], correctedPoint[1], nmk.color));
-            }
-            mtp.FinishLoading();
-            PA2Bmp = new(mtp.PixArray2D);
-            */
 
             /* Make a copy of the color array of the image. */
             ArgumentNullException.ThrowIfNull(DisplayedImg);
@@ -261,6 +216,7 @@ namespace ImageDistorsionUI
             pictureBox1.Image = PA2Bmp.ImgBmp;
         }
 
+        /* Correct the distortion in the image and display the corrected image. */
         private void correctBtn_Click(object sender, EventArgs e)
         {
             if (MarkerCnt < 4)
@@ -299,6 +255,7 @@ namespace ImageDistorsionUI
                 if (sfd.ShowDialog() == DialogResult.OK)
                 {
                     ArgumentNullException.ThrowIfNull(PA2Bmp);
+                    ArgumentNullException.ThrowIfNull(PA2Bmp.ImgBmp);
                     PA2Bmp.ImgBmp.Save(sfd.FileName);
                     MessageBox.Show("Image saved successfully");
                 }

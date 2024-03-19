@@ -33,20 +33,16 @@
             flowLayoutPanel1 = new FlowLayoutPanel();
             loadBtn = new Button();
             rstBtn = new Button();
-            logBtn = new Button();
+            txtBoxWidthInput = new TextBox();
+            txtBoxHeightInput = new TextBox();
             correctBtn = new Button();
             saveBtn = new Button();
             tableLayoutPanel1 = new TableLayoutPanel();
             flowLayoutPanel2 = new FlowLayoutPanel();
-            label1 = new Label();
-            label2 = new Label();
-            txtBoxWidthInput = new TextBox();
-            txtBoxHeightInput = new TextBox();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             flowLayoutPanel1.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
-            flowLayoutPanel2.SuspendLayout();
             SuspendLayout();
             // 
             // panel1
@@ -83,7 +79,6 @@
             flowLayoutPanel1.Controls.Add(txtBoxHeightInput);
             flowLayoutPanel1.Controls.Add(correctBtn);
             flowLayoutPanel1.Controls.Add(saveBtn);
-            flowLayoutPanel1.Controls.Add(logBtn);
             flowLayoutPanel1.Dock = DockStyle.Fill;
             flowLayoutPanel1.Location = new Point(643, 3);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
@@ -111,15 +106,21 @@
             rstBtn.UseVisualStyleBackColor = true;
             rstBtn.MouseClick += rstBtn_MouseClick;
             // 
-            // logBtn
+            // txtBoxWidthInput
             // 
-            logBtn.Location = new Point(3, 179);
-            logBtn.Name = "logBtn";
-            logBtn.Size = new Size(151, 23);
-            logBtn.TabIndex = 2;
-            logBtn.Text = "Log locations";
-            logBtn.UseVisualStyleBackColor = true;
-            logBtn.Click += logBtn_Click;
+            txtBoxWidthInput.Location = new Point(3, 63);
+            txtBoxWidthInput.Name = "txtBoxWidthInput";
+            txtBoxWidthInput.Size = new Size(142, 23);
+            txtBoxWidthInput.TabIndex = 4;
+            txtBoxWidthInput.Text = "Target width";
+            // 
+            // txtBoxHeightInput
+            // 
+            txtBoxHeightInput.Location = new Point(3, 92);
+            txtBoxHeightInput.Name = "txtBoxHeightInput";
+            txtBoxHeightInput.Size = new Size(142, 23);
+            txtBoxHeightInput.TabIndex = 5;
+            txtBoxHeightInput.Text = "Target height";
             // 
             // correctBtn
             // 
@@ -161,47 +162,11 @@
             // 
             // flowLayoutPanel2
             // 
-            flowLayoutPanel2.Controls.Add(label1);
-            flowLayoutPanel2.Controls.Add(label2);
             flowLayoutPanel2.Dock = DockStyle.Fill;
             flowLayoutPanel2.Location = new Point(3, 363);
             flowLayoutPanel2.Name = "flowLayoutPanel2";
             flowLayoutPanel2.Size = new Size(634, 84);
             flowLayoutPanel2.TabIndex = 3;
-            // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.Location = new Point(3, 0);
-            label1.Name = "label1";
-            label1.Size = new Size(38, 15);
-            label1.TabIndex = 0;
-            label1.Text = "label1";
-            // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Location = new Point(47, 0);
-            label2.Name = "label2";
-            label2.Size = new Size(38, 15);
-            label2.TabIndex = 1;
-            label2.Text = "label2";
-            // 
-            // txtBoxWidthInput
-            // 
-            txtBoxWidthInput.Location = new Point(3, 63);
-            txtBoxWidthInput.Name = "txtBoxWidthInput";
-            txtBoxWidthInput.Size = new Size(142, 23);
-            txtBoxWidthInput.TabIndex = 4;
-            txtBoxWidthInput.Text = "Target width";
-            // 
-            // txtBoxHeightInput
-            // 
-            txtBoxHeightInput.Location = new Point(3, 92);
-            txtBoxHeightInput.Name = "txtBoxHeightInput";
-            txtBoxHeightInput.Size = new Size(142, 23);
-            txtBoxHeightInput.TabIndex = 5;
-            txtBoxHeightInput.Text = "Target height";
             // 
             // Form1
             // 
@@ -218,8 +183,6 @@
             flowLayoutPanel1.PerformLayout();
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel1.PerformLayout();
-            flowLayoutPanel2.ResumeLayout(false);
-            flowLayoutPanel2.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -229,11 +192,8 @@
         private FlowLayoutPanel flowLayoutPanel1;
         private Button loadBtn;
         private Button rstBtn;
-        private Button logBtn;
         private TableLayoutPanel tableLayoutPanel1;
         private FlowLayoutPanel flowLayoutPanel2;
-        private Label label1;
-        private Label label2;
         private Button correctBtn;
         private Button saveBtn;
         private TextBox txtBoxWidthInput;
